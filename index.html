@@ -3,6 +3,7 @@
     <script src="raw/js/kospi200.js"></script>
     <script src="raw/js/ks200inv.js"></script>
     <script src="raw/js/snp.js"></script>
+    <script src="raw/js/kospi.js"></script>
     <script src="lib/moment.js"></script>
     <script src="lib/chart.js"></script>
     <script src="lib/jquery-3.2.1.js"></script>
@@ -11,8 +12,10 @@
         <table>
             <tr><td>KOSPI200   <input id="ks200" type="radio" name="data" checked="checked"></td><td>날짜<input type="date" name="start">-<input type="date" name="end"></td><td>거래비용<input id="fee" type="text">%</td></tr>
             <tr><td>S&amp;P500 <input id="snp500" type="radio" name="data"></td><td>펀드 편입 지연일수<input type="text">일</td></tr>
-            <tr><td>HangSeng Index <input id="hsi" type="radio" name="data"></td><td><input type="button" onclick="loadChart()" value="챠트생성"> <input type="button" onclick="addData()" value="수익률보기"></td></tr>
+            <tr><td>HangSeng Index <input id="hsi" type="radio" name="data"></td><td><input type="button" onclick="loadChart()" value="챠트생성"> <input type="button" onclick="addData()" value="수익률보기"></td><td>전월 수익률 <input type="text" name="lower">이하 청산</td><td><input type="text" name="upper">이상 매수</td></tr>
+            <tr><td>KOSPI <input id="kospi" type="radio" name="data"></td></tr>
         </table>
-        <canvas id="chart" width="800" height="400"></canvas>
+        <canvas id="chart" width="650pt" height="200pt"></canvas>
+        <canvas id="drawdown" width="650pt" height="120pt"></canvas>
     </body>
 </html>

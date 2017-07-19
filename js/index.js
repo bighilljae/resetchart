@@ -56,11 +56,24 @@ function loadChart() {
             })
         });
     }
+    
+    if( $('#kospi').is(':checked') ){
+        chartsets.push({
+            label: "KOSPI",
+            yAxisID: 'data',
+            backgroundColor: color(chartColors.green).alpha(0.5).rgbString(),
+            borderColor: chartColors.green,
+            data: kospi.map(function(elem){
+                return {x:new Date(elem.Date), y: elem.Close};
+            })
+        });
+    }
 
     config = config || {
         "type": "line",
         "data": {},
         "options":{
+            "responsive": false,
             "title":{
                 "text":"Chart.js Time Scale"
             },
@@ -77,18 +90,18 @@ function loadChart() {
                 "xAxes":[{
                     "type":"time",
                     "time":{"format":"MM/DD/YYYY HH:mm","tooltipFormat":"ll HH:mm"},
-                    "scaleLabel":{"display":true,"labelString":"Date"}
+                    "scaleLabel":{"display":false,"labelString":"Date"}
                 }],
                 "yAxes":[{
                     id: "data",
                     type: "linear",
                     position: "left",
-                    "scaleLabel":{"display":true,"labelString":"value"}
+                    "scaleLabel":{"display":false,"labelString":"value"}
                 },{
                     id: "balance",
                     type: "linear",
                     position: "right",
-                    "scaleLabel": {"display": true, "labelString": "value"}
+                    "scaleLabel": {"display": false, "labelString": "value"}
                 }]
             }
         }
@@ -108,6 +121,8 @@ function addData(){
         simulate = snp;
     } else if( config.data.datasets[0].label == "HSI" ){
         simulate = hsi;
+    } else if( config.data.datasets[0].label == "KOSPI" ){
+        simulate = kospi;
     }
     var profitArray = [];
     var balance = 100;
@@ -123,12 +138,12 @@ function addData(){
         if( i == 0 || m == simulate[i-1].Date.split("-")[1] ){
             if( position === undefined ){
                 profitArray.push({x: new Date(simulate[i].Date), y: balance});
-                continue;
             }
             else{       // 매수를 했으면
                 profitArray.push({x: new Date(simulate[i].Date), y: balance + (simulate[i].Close - position)/position * balance});
-                continue;
             }
+            
+            continue;
         }
         
         for( j = i - 1 ; j >= 0 ; j -- ){
@@ -179,6 +194,60 @@ function addData(){
             continue;
         }
     }
+    
+    var maximum = 100;
+    var drawdownArray = [];
+    for( var i = 0 ; i < profitArray.length ; i ++ ){
+        if( maximum < profitArray[i].y )
+            maximum = profitArray[i].y;
+        drawdownArray.push({x: profitArray[i].x, y: (profitArray[i].y - maximum) / maximum * 100});
+    }
+    
+    var dtx = document.getElementById('drawdown').getContext('2d');
+    var dd = new Chart(dtx, {
+        "type": "line",
+        "data": {
+            "datasets": [{
+                yAxisID: "drawdown",
+                backgroundColor: color(chartColors.blue).alpha(0.5).rgbString(),
+                borderColor: chartColors.blue,
+                data: drawdownArray
+            }]
+        },
+        "options":{
+            "legend": {
+                "display": false
+            },
+            "responsive": false,
+            "title":{
+                "text":"Chart.js Time Scale"
+            },
+            "elements":{
+                "point":{
+                    "radius": 0
+                },
+                "line":{
+                    "fill": false,
+                    "capBeizierPoints": false
+                }
+            },
+            "scales":{
+                "xAxes":[{
+                    "type":"time",
+                    "time":{"format":"MM/DD/YYYY HH:mm","tooltipFormat":"ll HH:mm"},
+                    "scaleLabel":{"display":false,"labelString":"Date"}
+                }],
+                "yAxes":[{
+                    id: "drawdown",
+                    type: "linear",
+                    position: "left",
+                    "scaleLabel":{"display":false,"labelString":"value"}
+                }]
+            }
+        }
+    });
+    dd.update();
+    
     
     config.data.datasets.push({
         label: "balance",
