@@ -8,4 +8,5 @@ app.get('/', function(request, response) {
     app.use('/lib', express.static(__dirname + '/lib'));
     app.use('/raw', express.static(__dirname + '/raw'));
     app.use('/js', express.static(__dirname + '/js'));
+    app.use('/css', express.static(__dirname + '/css'));
 }).listen(port);

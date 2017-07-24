@@ -17,6 +17,31 @@ var chartColors = {
 var color = Chart.helpers.color;
 var config;
 var chart;
+var dd;
+
+$(function(){
+    $('input[name*="data"]').change(function(obj){
+        var s, e;
+        if( obj.target.id == "kospi" ){
+            s = kospi[0].Date;
+            e = kospi[kospi.length - 1].Date;
+        } else if( obj.target.id == "snp500" ){
+            s = snp[0].Date;
+            e = snp[snp.length - 1].Date;
+        } else if( obj.target.id == "hsi" ){
+            s = hsi[0].Date;
+            e = hsi[hsi.length - 1].Date;
+        } else if( obj.target.id == "ks200" ){
+            s = kospi200[0].Date;
+            e = kospi200[kospi200.length - 1].Date;
+        }
+        
+        $("input[name*='start']").val(s);
+        $("input[name*='end']").val(e);
+    });
+    $('input[name*="data"]').change();
+});
+
 
 function loadChart() {
     var ctx = document.getElementById('chart').getContext('2d');
@@ -27,7 +52,10 @@ function loadChart() {
             yAxisID: 'data',
             backgroundColor: color(chartColors.green).alpha(0.5).rgbString(),
             borderColor: chartColors.green,
-            data: kospi200.map(function(elem){
+            data: kospi200.filter(function(elem){
+                return $("input[name*='start']").val() <= elem.Date &&
+                    elem.Date <= $("input[name*='end']").val();
+            }).map(function(elem){
                 return {x:new Date(elem.Date), y: elem.Close};
             })
         });
@@ -39,7 +67,10 @@ function loadChart() {
             yAxisID: 'data',
             backgroundColor: color(chartColors.red).alpha(0.5).rgbString(),
             borderColor: chartColors.red,
-            data: snp.map(function(elem){
+            data: snp.filter(function(elem){
+                return $("input[name*='start']").val() <= elem.Date &&
+                    elem.Date <= $("input[name*='end']").val();
+            }).map(function(elem){
                 return {x:new Date(elem.Date), y: elem.Close};
             })
         });
@@ -51,7 +82,10 @@ function loadChart() {
             yAxisID: 'data',
             backgroundColor: color(chartColors.blue).alpha(0.5).rgbString(),
             borderColor: chartColors.blue,
-            data: hsi.map(function(elem){
+            data: hsi.filter(function(elem){
+                return $("input[name*='start']").val() <= elem.Date &&
+                    elem.Date <= $("input[name*='end']").val();
+            }).map(function(elem){
                 return {x:new Date(elem.Date), y: elem.Close};
             })
         });
@@ -63,7 +97,10 @@ function loadChart() {
             yAxisID: 'data',
             backgroundColor: color(chartColors.green).alpha(0.5).rgbString(),
             borderColor: chartColors.green,
-            data: kospi.map(function(elem){
+            data: kospi.filter(function(elem){
+                return $("input[name*='start']").val() <= elem.Date &&
+                    elem.Date <= $("input[name*='end']").val();
+            }).map(function(elem){
                 return {x:new Date(elem.Date), y: elem.Close};
             })
         });
@@ -128,7 +165,24 @@ function addData(){
     var balance = 100;
     var position = undefined;
     
+    var tradeFee = $("#fee").val();
+    var upper = $("input[name*='upper']").val(), lower = $("input[name*='lower']").val();
+    
+    var dateStart = undefined, dateEnd = undefined;
     for( var i = 0 ; i < simulate.length ; i ++ ){
+        if( !dateStart && simulate[i].Date >= $("input[name*='start']").val() )
+            dateStart = i;
+        if( !dateEnd && simulate[simulate.length - i - 1].Date <= $("input[name*='end']").val() )
+            dateEnd = simulate.length - i;
+        if( dateStart && dateEnd ) break;
+    }
+    
+    if( dateStart == undefined || dateEnd == undefined ){
+        alert('날짜 선택 오류');
+        return;
+    }
+    
+    for( var i = dateStart ; i < dateEnd ; i ++ ){
         // 지난 달 수익률
         var y = simulate[i].Date.split("-")[0],
             m = simulate[i].Date.split("-")[1],
@@ -176,11 +230,11 @@ function addData(){
         var beforeMonthPercentage = (simulate[beforeMonthlastIndex].Close - simulate[beforeMonthFirstIndex].Open) / simulate[beforeMonthFirstIndex].Open * 100;
         // 2% 상승 및 진입
         console.log(beforeMonthPercentage);
-        if( beforeMonthPercentage >= 2 && position === undefined ){
-            position = simulate[i].Open;
+        if( beforeMonthPercentage >= upper && position === undefined ){
+            position = simulate[i].Open * (100 - tradeFee) / 100;
         }
         // -1 하락 및 청산
-        if( beforeMonthPercentage <= -1 && position !== undefined ){
+        if( beforeMonthPercentage <= lower && position !== undefined ){
             balance = balance + (simulate[i].Open - position) / position * balance;
             position = undefined;
         }
@@ -204,14 +258,13 @@ function addData(){
     }
     
     var dtx = document.getElementById('drawdown').getContext('2d');
-    var dd = new Chart(dtx, {
+    dd = dd || new Chart(dtx, {
         "type": "line",
         "data": {
             "datasets": [{
                 yAxisID: "drawdown",
                 backgroundColor: color(chartColors.blue).alpha(0.5).rgbString(),
                 borderColor: chartColors.blue,
-                data: drawdownArray
             }]
         },
         "options":{
@@ -246,6 +299,7 @@ function addData(){
             }
         }
     });
+    dd.data.datasets[0].data = drawdownArray;
     dd.update();
     
     
