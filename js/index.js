@@ -231,7 +231,7 @@ function addData(){
         // 2% 상승 및 진입
         console.log(beforeMonthPercentage);
         if( beforeMonthPercentage >= upper && position === undefined ){
-            position = simulate[i].Open * (100 - tradeFee) / 100;
+            position = simulate[i].Open * (100 + tradeFee) / 100;
         }
         // -1 하락 및 청산
         if( beforeMonthPercentage <= lower && position !== undefined ){
