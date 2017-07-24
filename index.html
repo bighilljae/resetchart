@@ -10,9 +10,10 @@
     <script src="js/index.js"></script>
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <body>
-        <div id="mySidenav" class="sidenav">
+        <div id="mySlidenav" class="sidenav">
           <a href="#">A형</a>
-          <a href="#">모멘텀</a>
+          <a href="#">싱글 에셋</a>
+          <a href="#">멀티 에셋</a>
         </div>
 
 
@@ -27,11 +28,13 @@
                 <tr>
                     <td>S&amp;P500 <input id="snp500" type="radio" name="data"></td>
                     <td>펀드 편입 지연일수<input style="background-color: gray" type="text" id="delayDate" value="0" readonly>일</td>
+                    <td class="momentumfunc" style="display:none"><input type="radio" name="avgType" id="simpleAvg" checked="checked">단순평균<input type="radio" name="avgType" id="weightAvg">가중평균 </td>
                 </tr>
                 <tr>
                     <td>HangSeng Index <input id="hsi" type="radio" name="data"></td>
                     <td><input type="button" onclick="loadChart()" value="챠트생성"> <input type="button" onclick="addData()" value="수익률보기"></td>
-                    <td>전월 수익률 <input type="text" name="lower" value="-1">이하 청산</td><td><input type="text" name="upper" value="2">이상 매수</td>
+                    <td id="atype" style="display:block">전월 수익률 <input type="text" name="lower" value="-1">이하 청산<input type="text" name="upper" value="2">이상 매수</td>
+                    <td class="momentumfunc" id="momentumTd" style="display:none">모멘텀 기간 <input type="text" name="momentum_left" value="6">~<input type="text" name="momentum_right" value="0"></td>
                 </tr>
                 <tr><td>KOSPI <input id="kospi" type="radio" name="data"></td></tr>
             </table>
