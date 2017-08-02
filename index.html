@@ -4,6 +4,20 @@
     <script src="raw/js/ks200inv.js"></script>
     <script src="raw/js/snp.js"></script>
     <script src="raw/js/kospi.js"></script>
+    
+    <script src="raw/js/austrailia_simple.js"></script>
+    <script src="raw/js/brazil_simple.js"></script>
+    <script src="raw/js/hangseng_simple.js"></script>
+    <script src="raw/js/hongkong_simple.js"></script>
+    <script src="raw/js/india_simple.js"></script>
+    <script src="raw/js/japan_simple.js"></script>
+    <script src="raw/js/korea_simple.js"></script>
+    <script src="raw/js/nasdaq_simple.js"></script>
+    <script src="raw/js/russia_simple.js"></script>
+    <script src="raw/js/samsumg_focus_simple.js"></script>
+    <script src="raw/js/singapore_simple.js"></script>
+    <script src="raw/js/taiwan_simple.js"></script>
+    
     <script src="lib/moment.js"></script>
     <script src="lib/chart.js"></script>
     <script src="lib/jquery-3.2.1.js"></script>
@@ -18,7 +32,7 @@
 
 
         <!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
-        <div id="main">
+        <div id="single" class="main">
             <table>
                 <tr>
                     <td>KOSPI200   <input id="ks200" type="radio" name="data" checked="checked"></td>
@@ -27,7 +41,7 @@
                 </tr>
                 <tr>
                     <td>S&amp;P500 <input id="snp500" type="radio" name="data"></td>
-                    <td>펀드 편입 지연일수<input style="background-color: gray" type="text" id="delayDate" value="0" readonly>일</td>
+                    <td>펀드 편입 지연일수<input type="text" id="delayDate" value="0" >일</td>
                     <td class="momentumfunc" style="display:none"><input type="radio" name="avgType" id="simpleAvg" checked="checked">단순평균<input type="radio" name="avgType" id="weightAvg">가중평균 </td>
                 </tr>
                 <tr>
@@ -40,6 +54,19 @@
             </table>
             <canvas id="chart" width="650pt" height="200pt"></canvas>
             <canvas id="drawdown" width="650pt" height="120pt"></canvas>
+        </div>
+        <div id="multiple" class="main" style="display:none">
+            <table>
+                <tr>
+                    <td>날짜<input type="date" name="start">-<input type="date" name="end"></td>
+                    <td>거래비용<input id="fee" type="text" value="0">%</td>
+                    <td>최대 포트폴리오 갯수<input id="portf" type="text" value="5">개</td>
+                    <td>최소 현금 보유 비율<input id="cash_per" type="text" value="0">%</td>
+                    <td>모멘텀<input id="momentum_var" type="text" value="3">M</td>
+                    <td><input type="button" name="show_chart" onclick="multipleMomentum()" value="챠트생성"></td>
+                </tr>
+            </table>
+            <canvas id="mul_chart" width="920pt" height="350pt"></canvas>
         </div>
     </body>
 </html>

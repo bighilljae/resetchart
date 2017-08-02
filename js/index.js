@@ -22,7 +22,7 @@ var dd;
 
 // onload
 $(function(){
-    $('input[name*="data"]').change(function(obj){
+    $('input[name*="data"]', '#single').change(function(obj){
         var s, e;
         if( obj.target.id == "kospi" ){
             s = kospi[0].Date;
@@ -38,17 +38,28 @@ $(function(){
             e = kospi200[kospi200.length - 1].Date;
         }
         
-        $("input[name*='start']").val(s);
-        $("input[name*='end']").val(e);
+        $("input[name*='start']", '#single').val(s);
+        $("input[name*='end']", '#single').val(e);
     });
-    $('input[name*="data"]').change();
+    $('input[name*="data"]', '#single').change();
     
     $("#mySlidenav a:nth-child(1)").click(function(){
+        $("#single").css('display', 'block');
+        $('#multiple').css('display', 'none');
         $("#atype").css('display', 'block');
         $('.momentumfunc').css('display', 'none');
     });
     
     $("#mySlidenav a:nth-child(2)").click(function(){
+        $("#single").css('display', 'block');
+        $('#multiple').css('display', 'none');
+        $("#atype").css('display', 'none');
+        $('.momentumfunc').css('display', 'block');
+    });
+    
+    $("#mySlidenav a:nth-child(3)").click(function(){
+        $("#single").css('display', 'none');
+        $('#multiple').css('display', 'block');
         $("#atype").css('display', 'none');
         $('.momentumfunc').css('display', 'block');
     });
@@ -58,60 +69,60 @@ $(function(){
 function loadChart() {
     var ctx = document.getElementById('chart').getContext('2d');
     var chartsets = [];
-    if( $('#ks200').is(':checked') ){
+    if( $('#ks200', '#single').is(':checked') ){
         chartsets.push({
             label: "KOSPI200",
             yAxisID: 'data',
             backgroundColor: color(chartColors.green).alpha(0.5).rgbString(),
             borderColor: chartColors.green,
             data: kospi200.filter(function(elem){
-                return $("input[name*='start']").val() <= elem.Date &&
-                    elem.Date <= $("input[name*='end']").val();
+                return $("input[name*='start']", '#single').val() <= elem.Date &&
+                    elem.Date <= $("input[name*='end']", '#single').val();
             }).map(function(elem){
                 return {x:new Date(elem.Date), y: elem.Close};
             })
         });
     }
 
-    if( $('#snp500').is(':checked') ){
+    if( $('#snp500', '#single').is(':checked') ){
         chartsets.push({
             label: "S&P500",
             yAxisID: 'data',
             backgroundColor: color(chartColors.red).alpha(0.5).rgbString(),
             borderColor: chartColors.red,
             data: snp.filter(function(elem){
-                return $("input[name*='start']").val() <= elem.Date &&
-                    elem.Date <= $("input[name*='end']").val();
+                return $("input[name*='start']", '#single').val() <= elem.Date &&
+                    elem.Date <= $("input[name*='end']", '#single').val();
             }).map(function(elem){
                 return {x:new Date(elem.Date), y: elem.Close};
             })
         });
     }
 
-    if( $('#hsi').is(':checked') ){
+    if( $('#hsi', '#single').is(':checked') ){
         chartsets.push({
             label: "HSI",
             yAxisID: 'data',
             backgroundColor: color(chartColors.blue).alpha(0.5).rgbString(),
             borderColor: chartColors.blue,
             data: hsi.filter(function(elem){
-                return $("input[name*='start']").val() <= elem.Date &&
-                    elem.Date <= $("input[name*='end']").val();
+                return $("input[name*='start']", '#single').val() <= elem.Date &&
+                    elem.Date <= $("input[name*='end']", '#single').val();
             }).map(function(elem){
                 return {x:new Date(elem.Date), y: elem.Close};
             })
         });
     }
     
-    if( $('#kospi').is(':checked') ){
+    if( $('#kospi', '#single').is(':checked') ){
         chartsets.push({
             label: "KOSPI",
             yAxisID: 'data',
             backgroundColor: color(chartColors.green).alpha(0.5).rgbString(),
             borderColor: chartColors.green,
             data: kospi.filter(function(elem){
-                return $("input[name*='start']").val() <= elem.Date &&
-                    elem.Date <= $("input[name*='end']").val();
+                return $("input[name*='start']", '#single').val() <= elem.Date &&
+                    elem.Date <= $("input[name*='end']", '#single').val();
             }).map(function(elem){
                 return {x:new Date(elem.Date), y: elem.Close};
             })
@@ -177,14 +188,16 @@ function proFPA(){
     var balance = 100;
     var position = undefined;
     
-    var tradeFee = $("#fee").val();
-    var upper = $("input[name*='upper']").val(), lower = $("input[name*='lower']").val();
+    var tradeFee = parseFloat($("#fee", '#single').val());
+    var upper = $("input[name*='upper']", '#single').val(), lower = $("input[name*='lower']", '#single').val();
+    var delayDate = $("#delayDate", '#single').val();
+    if( delayDate == 0 ) delayDate = undefined;
     
     var dateStart = undefined, dateEnd = undefined;
     for( var i = 0 ; i < simulate.length ; i ++ ){
-        if( !dateStart && simulate[i].Date >= $("input[name*='start']").val() )
+        if( !dateStart && simulate[i].Date >= $("input[name*='start']", '#single').val() )
             dateStart = i;
-        if( !dateEnd && simulate[simulate.length - i - 1].Date <= $("input[name*='end']").val() )
+        if( !dateEnd && simulate[simulate.length - i - 1].Date <= $("input[name*='end']", '#single').val() )
             dateEnd = simulate.length - i;
         if( dateStart && dateEnd ) break;
     }
@@ -194,11 +207,25 @@ function proFPA(){
         return;
     }
     
+    positionCount = undefined;
     for( var i = dateStart ; i < dateEnd ; i ++ ){
         // 지난 달 수익률
         var y = simulate[i].Date.split("-")[0],
             m = simulate[i].Date.split("-")[1],
             d = simulate[i].Date.split("-")[2];
+        
+        if( positionCount ){
+            positionCount --;
+            if( positionCount == 0 ){
+                positionCount = undefined;
+                if( position == undefined ){
+                    position = simulate[i].Open * (100 + tradeFee) / 100;
+                } else {
+                    balance = balance + (simulate[i].Open - position) / position * balance;
+                    position = undefined;
+                }
+            }
+        }
         
         // 월 중에는 수익률 계산만 하자.
         if( i == 0 || m == simulate[i-1].Date.split("-")[1] ){
@@ -243,12 +270,16 @@ function proFPA(){
         // 2% 상승 및 진입
         console.log(beforeMonthPercentage);
         if( beforeMonthPercentage >= upper && position === undefined ){
-            position = simulate[i].Open * (100 + tradeFee) / 100;
+            positionCount = delayDate;
+            if( !positionCount ) position = simulate[i].Open * (100 + tradeFee) / 100;
         }
         // -1 하락 및 청산
         if( beforeMonthPercentage <= lower && position !== undefined ){
-            balance = balance + (simulate[i].Open - position) / position * balance;
-            position = undefined;
+            positionCount = delayDate;
+            if( !positionCount ) {
+                balance = balance + (simulate[i].Open - position) / position * balance;
+                position = undefined;
+            }
         }
         
         if( position === undefined ){
@@ -314,14 +345,18 @@ function proFPA(){
     dd.data.datasets[0].data = drawdownArray;
     dd.update();
 
+    var randomColor = 'rgb(' + parseInt(Math.random() * 256) + ', ' + 
+                                parseInt(Math.random() * 256) + ', ' + 
+                                parseInt(Math.random() * 256) + ')';
+    
     config.data.datasets.push({
         label: "balance",
         yAxisID: "balance",
         fill: false,
         capBeizierPoints: false,
         data: profitArray,
-        backgroundColor: balanceColor ? color(chartColors.purple).alpha(1).rgbString() : color(chartColors.black).alpha(1).rgbString(),
-        borderColor: balanceColor ? chartColors.purple : chartColors.black
+        backgroundColor: balanceColor ? color(randomColor).alpha(1).rgbString() : color(randomColor).alpha(1).rgbString(),
+        borderColor: balanceColor ? randomColor : chartColors.black
     });
     balanceColor = "black";
     chart.update();
@@ -344,16 +379,18 @@ function momentumTrade(){
     var balance = 100;
     var position = undefined;
     
-    var tradeFee = $("#fee").val();
-    var momentumLeft = $("input[name*='momentum_left']").val(),
-        momentumRight = $("input[name*='momentum_right']").val();
-    var avgType = $("input[name*='avgType']:checked").attr('id');
+    var tradeFee = parseFloat($("#fee", '#single').val());
+    var momentumLeft = $("input[name*='momentum_left']", '#single').val(),
+        momentumRight = $("input[name*='momentum_right']", '#single').val();
+    var avgType = $("input[name*='avgType']:checked", '#single').attr('id');
+    var delayDate = $("#delayDate", '#single').val();
+    if( delayDate == 0 ) delayDate = undefined;
     
     var dateStart = undefined, dateEnd = undefined;
     for( var i = 0 ; i < simulate.length ; i ++ ){
-        if( !dateStart && simulate[i].Date >= $("input[name*='start']").val() )
+        if( !dateStart && simulate[i].Date >= $("input[name*='start']", '#single').val() )
             dateStart = i;
-        if( !dateEnd && simulate[simulate.length - i - 1].Date <= $("input[name*='end']").val() )
+        if( !dateEnd && simulate[simulate.length - i - 1].Date <= $("input[name*='end']", '#single').val() )
             dateEnd = simulate.length - i;
         if( dateStart && dateEnd ) break;
     }
@@ -364,7 +401,7 @@ function momentumTrade(){
     }
     
     var monthly = [];
-    
+    var positionCount = undefined;
     for( var i = 0 ; i < simulate.length ; i ++ ){
         var y = simulate[i].Date.split("-")[0],
             m = simulate[i].Date.split("-")[1],
@@ -399,7 +436,18 @@ function momentumTrade(){
         for( ; monthly[month] && monthly[month].Date != y+"-"+m ; month ++ );
         if( !monthly[month] ) break;
         
-        
+        if( positionCount ){
+            positionCount --;
+            if( positionCount == 0 ){
+                positionCount = undefined;
+                if( position == undefined ){
+                    position = simulate[i].Open * (100 + tradeFee) / 100;
+                } else {
+                    balance = balance + (simulate[i].Open - position) / position * balance;
+                    position = undefined;
+                }
+            }
+        }
         
         // 월 중에는 수익률 계산만 하자.
         if( i == 0 || m == simulate[i-1].Date.split("-")[1] ){
@@ -435,10 +483,14 @@ function momentumTrade(){
         console.log( y+'-'+m +' = momentum ' + sum / avg + ' , close : ' + monthly[month-1].Close);
         
         if( sum / avg < monthly[month-1].Close && position === undefined ){
-            position = simulate[i].Open * (100 - tradeFee) / 100;
+            positionCount = delayDate;
+            if( !positionCount ) position = simulate[i].Open * (100 - tradeFee) / 100;
         } else if( sum / avg > monthly[month-1].Close && position !== undefined ){
-            balance = balance + (simulate[i].Open - position) / position * balance;
-            position = undefined;
+            positionCount = delayDate;
+            if ( !positionCount ){
+                balance = balance + (simulate[i].Open - position) / position * balance;
+                position = undefined;
+            }
         }
         
         if( position === undefined ){
@@ -504,6 +556,9 @@ function momentumTrade(){
     dd.data.datasets[0].data = drawdownArray;
     dd.update();
     
+    var randomColor = 'rgb(' + parseInt(Math.random() * 256) + ', ' + 
+                                parseInt(Math.random() * 256) + ', ' + 
+                                parseInt(Math.random() * 256) + ')';
     
     config.data.datasets.push({
         label: "balance",
@@ -511,20 +566,118 @@ function momentumTrade(){
         fill: false,
         capBeizierPoints: false,
         data: profitArray,
-        backgroundColor: balanceColor ? color(chartColors.purple).alpha(1).rgbString() : color(chartColors.black).alpha(1).rgbString(),
-        borderColor: balanceColor ? chartColors.purple : chartColors.black
+        backgroundColor: balanceColor ? color(randomColor).alpha(1).rgbString() : color(randomColor).alpha(1).rgbString(),
+        borderColor: balanceColor ? randomColor : chartColors.black
     });
     balanceColor = "black";
     chart.update();
 }
 
-function addData(){
+var multiple_chart = undefined;
+// onclick
+function multipleMomentum(){
+    // 13개
+    if( !multiple_chart ){
+        var dataset = {"NASDAQ":nasdaq_simple,
+                       "JAPAN": japan_simple,
+                       "SINGAPORE": singapore_simple,
+                       "MSCI Russia Index": russia_simple,
+                       "TAIWAN": taiwan_simple,
+                       "HONGKONG": hongkong_simple,
+                       "MSCI India Index": india_simple,
+                       "HANGSENG Index": hangseng_simple,
+                       "BRAZIL": brazil_simple,
+                       "KOREA": korea_simple,
+                       "삼성중소형 foucs": samsung_focus_simple};
+
+        var ctx = document.getElementById('mul_chart').getContext('2d');
+
+        var figure = {
+            "type": "line",
+            "data": {
+                "datasets": []
+            },
+            "options":{
+                "responsive": false,
+                "title":{
+                    "text":"Chart.js Time Scale"
+                },
+                "elements":{
+                    "point":{
+                        "radius": 0
+                    },
+                    "line":{
+                        "fill": false,
+                        "capBeizierPoints": false
+                    }
+                },
+                "scales":{
+                    "xAxes":[{
+                        "type":"time",
+                        "time":{"format":"MM/DD/YYYY HH:mm", "tooltipFormat":"MM/DD/YYYY"},
+                        "scaleLabel":{"display":false,"labelString":"Date"}
+                    }],
+                    "yAxes":[{
+                        id: "data",
+                        type: "linear",
+                        position: "left",
+                        "scaleLabel":{"display":false,"labelString":"value"}
+                    },{
+                        id: "balance",
+                        type: "linear",
+                        position: "right",
+                        "scaleLabel": {"display": false, "labelString": "value"}
+                    }]
+                }
+            }
+        };
+
+        Object.keys(dataset).forEach(function(key){
+            var firstValue = dataset[key][0].Data;
+            var dataArray = [];
+            dataset[key].forEach(function(elem){
+                dataArray.push({x: new Date(elem.Date), y: elem.Data / firstValue * 1000});
+            });
+
+            var randomColor = 'rgb(' + parseInt(Math.random() * 256) + ', ' + 
+                                    parseInt(Math.random() * 256) + ', ' + 
+                                    parseInt(Math.random() * 256) + ')';
+            figure.data.datasets.push({
+                label: key,
+                yAxisID: "data",
+                data: dataArray,
+                backgroundColor: color(randomColor).alpha(1).rgbString(),
+                borderColor: randomColor
+            })
+        });
+
+        multiple_chart = new Chart(ctx, figure);
+    }
     
+    var date = "2000-01-01";
+    var dateIndex = {};
+    var position = {};
+    while( true ){
+        // find iter
+        Object.keys(dataset).forEach(function(key){
+            if( dataset[key][0].Date == date ){
+                dateIndex[key] = {"index" : iter,
+                                 "firstValue": dataset[key][iter].Data};
+            }
+        });
+        
+        Object.keys(dateIndex).forEach(function(key){
+            
+        });
+    }
+}
+
+
+function addData(){
     if( $('#atype').css('display') == 'block' ){
         proFPA();
     }
     else {
         momentumTrade();
     }
-    
 }
