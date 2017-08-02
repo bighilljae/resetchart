@@ -1,4 +1,7 @@
-<html>
+<!DOCTYPE html>
+<html lang="ko">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
     <script src="raw/js/hsi.js"></script>
     <script src="raw/js/kospi200.js"></script>
     <script src="raw/js/ks200inv.js"></script>
@@ -18,10 +21,16 @@
     <script src="raw/js/singapore_simple.js"></script>
     <script src="raw/js/taiwan_simple.js"></script>
     
+    <script src="raw/js/dongyang_simple.js"></script>
+    <script src="raw/js/high_yield_simple.js"></script>
+    <script src="raw/js/gold_simple.js"></script>
+    <script src="raw/js/shinyoung_simple.js"></script>
+    
     <script src="lib/moment.js"></script>
     <script src="lib/chart.js"></script>
     <script src="lib/jquery-3.2.1.js"></script>
     <script src="js/index.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <body>
         <div id="mySlidenav" class="sidenav">
@@ -63,10 +72,13 @@
                     <td>최대 포트폴리오 갯수<input id="portf" type="text" value="5">개</td>
                     <td>최소 현금 보유 비율<input id="cash_per" type="text" value="0">%</td>
                     <td>모멘텀<input id="momentum_var" type="text" value="3">M</td>
+                    <td>편입 지연 일수<input type="text" id="delayDate" value="0"></td>
                     <td><input type="button" name="show_chart" onclick="multipleMomentum()" value="챠트생성"></td>
                 </tr>
             </table>
             <canvas id="mul_chart" width="920pt" height="350pt"></canvas>
+            <table id="history">
+            </table>
         </div>
     </body>
 </html>
