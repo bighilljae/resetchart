@@ -65,6 +65,10 @@ $(function(){
         $("#atype").css('display', 'none');
         $('.momentumfunc').css('display', 'block');
         balanceColor = undefined;
+        
+        $("input[name*='start']", '#multiple').val("2000-01-01");
+        var q = new Date();
+        $("input[name*='end']", '#multiple').val(`${q.getFullYear()}-${("0"+(q.getMonth()+1)).slice(-2)}-${("0"+q.getDate()).slice(-2)}`);
     });
 });
 
@@ -579,93 +583,103 @@ function momentumTrade(){
 var multiple_chart = undefined;
 // onclick
 function multipleMomentum(){
+    
+    var dateStartStr = $("input[name*='start']", '#multiple').val();
+    var dateStart = new Date(dateStartStr);
+    var dateEndStr = $("input[name*='end']", '#multiple').val();
+    var dateEnd = new Date(dateEndStr);
+    
     window.fee = parseFloat($('#fee', '#multiple').val());
     window.portf = parseInt($('#portf', '#multiple').val());
     window.cash_rate = parseFloat($('#cash_per', '#multiple').val());
     window.momentum_dist = parseInt($('#momentum_var', '#multiple').val());
     
     // 13개
-    if( !multiple_chart ){
-        window.dataset = {"NASDAQ":nasdaq_simple,
-                       "JAPAN": japan_simple,
-                       //"SINGAPORE": singapore_simple,
-                       "MSCI Russia Index": russia_simple,
-                       //"TAIWAN": taiwan_simple,
-                       //"HONGKONG": hongkong_simple,
-                       //"AUSTRAILLIA": austraillia_simple,
-                       "MSCI India Index": india_simple,
-                       "HANGSENG Index": hangseng_simple,
-                       "BRAZIL": brazil_simple,
-                       "KOREA": korea_simple,
-                       "동양 고배당": dongyang_simple,
-                       "신영 밸류 고배당": shinyoung_simple,
-                       "Gold": gold_simple,
-                       "high yield": high_yield_simple,
-                       "삼성중소형 foucs": samsung_focus_simple};
+    window.dataset = {"NASDAQ":nasdaq_simple,
+                   "JAPAN": japan_simple,
+                   //"SINGAPORE": singapore_simple,
+                   "MSCI Russia Index": russia_simple,
+                   //"TAIWAN": taiwan_simple,
+                   //"HONGKONG": hongkong_simple,
+                   //"AUSTRAILLIA": austraillia_simple,
+                   "MSCI India Index": india_simple,
+                   "HANGSENG Index": hangseng_simple,
+                   "BRAZIL": brazil_simple,
+                   "KOREA": korea_simple,
+                   "동양 고배당": dongyang_simple,
+                   "신영 밸류 고배당": shinyoung_simple,
+                   "Gold": gold_simple,
+                   "high yield": high_yield_simple,
+                   "삼성중소형 foucs": samsung_focus_simple};
 
-        var ctx = document.getElementById('mul_chart').getContext('2d');
+    var ctx = document.getElementById('mul_chart').getContext('2d');
 
-        window.figure = {
-            "type": "line",
-            "data": {
-                "datasets": []
+    window.figure = {
+        "type": "line",
+        "data": {
+            "datasets": []
+        },
+        "options":{
+            "responsive": false,
+            "title":{
+                "text":"Chart.js Time Scale"
             },
-            "options":{
-                "responsive": false,
-                "title":{
-                    "text":"Chart.js Time Scale"
+            "elements":{
+                "point":{
+                    "radius": 0
                 },
-                "elements":{
-                    "point":{
-                        "radius": 0
-                    },
-                    "line":{
-                        "fill": false,
-                        "capBeizierPoints": false
-                    }
-                },
-                "scales":{
-                    "xAxes":[{
-                        "type":"time",
-                        "time":{"format":"MM/DD/YYYY HH:mm", "tooltipFormat":"MM/DD/YYYY"},
-                        "scaleLabel":{"display":false,"labelString":"Date"}
-                    }],
-                    "yAxes":[{
-                        id: "data",
-                        type: "linear",
-                        position: "left",
-                        "scaleLabel":{"display":false,"labelString":"value"}
-                    },{
-                        id: "balance",
-                        type: "linear",
-                        position: "right",
-                        "scaleLabel": {"display": false, "labelString": "value"}
-                    }]
+                "line":{
+                    "fill": false,
+                    "capBeizierPoints": false
                 }
+            },
+            "scales":{
+                "xAxes":[{
+                    "type":"time",
+                    "time":{"format":"MM/DD/YYYY HH:mm", "tooltipFormat":"MM/DD/YYYY"},
+                    "scaleLabel":{"display":false,"labelString":"Date"}
+                }],
+                "yAxes":[{
+                    id: "data",
+                    type: "linear",
+                    position: "left",
+                    "scaleLabel":{"display":false,"labelString":"value"}
+                },{
+                    id: "balance",
+                    type: "linear",
+                    position: "right",
+                    "scaleLabel": {"display": false, "labelString": "value"}
+                }]
             }
-        };
+        }
+    };
 
-        Object.keys(dataset).forEach(function(key){
-            var firstValue = dataset[key][0].Data;
-            var dataArray = [];
-            dataset[key].forEach(function(elem){
-                dataArray.push({x: new Date(elem.Date), y: elem.Data / firstValue * 1000});
-            });
-
-            var randomColor = 'rgb(' + parseInt(Math.random() * 256) + ', ' + 
-                                    parseInt(Math.random() * 256) + ', ' + 
-                                    parseInt(Math.random() * 256) + ')';
-            figure.data.datasets.push({
-                label: key,
-                yAxisID: "data",
-                data: dataArray,
-                backgroundColor: color(randomColor).alpha(1).rgbString(),
-                borderColor: randomColor
-            })
+    Object.keys(dataset).forEach(function(key){
+        var firstValue = dataset[key][0].Data;
+        var dataArray = [];
+        dataset[key].filter(function(elem){
+            var elemDate = new Date(elem.Date);
+            return dateStart.getTime() <= elemDate.getTime() && elemDate.getTime() <= dateEnd.getTime();
+        }, this).forEach(function(elem){
+            dataArray.push({x: new Date(elem.Date), y: elem.Data / firstValue * 1000});
         });
 
-        multiple_chart = new Chart(ctx, figure);
-    }
+        var randomColor = 'rgb(' + parseInt(Math.random() * 256) + ', ' + 
+                                parseInt(Math.random() * 256) + ', ' + 
+                                parseInt(Math.random() * 256) + ')';
+        figure.data.datasets.push({
+            label: key,
+            yAxisID: "data",
+            data: dataArray,
+            backgroundColor: color(randomColor).alpha(1).rgbString(),
+            borderColor: randomColor
+        })
+    });
+
+    if( multiple_chart )
+        multiple_chart.destroy();
+    multiple_chart = new Chart(ctx, figure);
+    
     
     window.monthly = {};
     $('#history', '#multiple').empty();
@@ -705,7 +719,7 @@ function multipleMomentum(){
     
     window.momentum_history = new Array(Object.keys(monthly).length);
     Object.keys(monthly).sort().forEach(function(month, index, offset){
-        !momentum_history[index] ? momentum_history[index] = {} : null;
+        !momentum_history[index] ? momentum_history[index] = {Date: month} : null;
         for( key in monthly[month] ){
             if( index < momentum_dist || monthly[offset[index - momentum_dist]][key] == undefined ){
                 momentum_history[index][key] = undefined;
@@ -716,70 +730,80 @@ function multipleMomentum(){
     });
     
     var $history_table = $('#history', '#multiple');
-    var i = 0;
-    var trade_port = [];
+    var trade_port = {};
+    var momentum_index = 0;
     for( month in monthly ){
-        trade_port[i] = [];
+        trade_port[month] = [];
+        if( month == momentum_history[0].Date ) momentum_index = 0;
         $row = $('<tr></tr>');
         $history_table.append($row);
         $row.append('<td>' + month + '</td>');
         for( key in dataset ){
-            if( momentum_history[i][key] == undefined ){
+            if( momentum_index === undefined || momentum_history[momentum_index][key] == undefined ){
                 $row.append('<td>-</td>');
             }else{
-                $row.append('<td style="color:' + (momentum_history[i][key]<0?'blue':'red') + '">' + (100*momentum_history[i][key]+"").substring(0, 5) + '</td>');
-                if( momentum_history[i][key] > 0 ){
-                    trade_port[i].push({
+                $row.append('<td style="color:' + (momentum_history[momentum_index][key]<0?'blue':'red') + '">' + (100*momentum_history[momentum_index][key]+"").substring(0, 5) + '</td>');
+                if( momentum_history[momentum_index][key] > 0 ){
+                    trade_port[month].push({
                         key: key,
-                        value: momentum_history[i][key]
+                        value: momentum_history[momentum_index][key]
                     });
                 }
             }
         }
         
-        trade_port[i] = trade_port[i].sort(function(l, r){
+        trade_port[month] = trade_port[month].sort(function(l, r){
             return l.value < r.value;
         }).slice(0, 5);
-        i ++;
+        if( momentum_index !== undefined ) momentum_index++;
     }
     
-    i = 0;
     var balance = 100;
     var keyIndex = {};
-    Object.keys(dataset).forEach(function(elem){ keyIndex[elem] = undefined; });
+    Object.keys(dataset).forEach(function(key){
+        keyIndex[key] = undefined;
+        if( new Date(dataset[key][0].Date).getTime() < dateStart.getTime() ){
+            for( i = 0 ; i < dataset[key].length ; i ++ ){
+                if( dateStartStr == dataset[key][i].Date ){
+                    keyIndex[key] = i;
+                    break;
+                }                    
+            }
+        }
+    }, this);
     var balanceArray = [];
     var position = {};
     var delayDate = undefined;
     var endRun = false;
-    for( var dd = new Date("2010-01-01") ; ; dd.setDate(dd.getDate() + 1)){
+    
+    for( var dd = dateStart ; dd.getTime() < dateEnd ; dd.setDate(dd.getDate() + 1)){
         for( key in keyIndex ){
-            if( keyIndex[key] >= dataset[key].length ) endRun = true;
             if( keyIndex[key] == undefined && new Date(dataset[key][0].Date).getTime() == dd.getTime() ){
                 keyIndex[key] = 0;
             }
+            if( keyIndex[key] !== undefined && dataset[key].length <= keyIndex[key] )
+                endRun = true;
         }
         if( endRun ) break;
         
         if( dd.getDate() == 1 ){
-            if( i != 0 ) {
-                for( k in position ){
-                    position[k].todo = "SELL";
-                }
-                // 포지션에 있는데 이번달에 없으면 판매, 포지션에 없는데 이번달에 있으면 매수
-                for( item in trade_port[i] ){
-                    var tKey = trade_port[i][item].key;
-                    if(position[tKey]){
-                        position[tKey].todo = "HOLD";
-                    }else{
-                        position[tKey] = {
-                            todo : "BUY"
-                        };
-                    }
+            for( k in position ){
+                position[k].todo = "SELL";
+            }
+            var monthStr = `${dd.getFullYear()}-${("0"+(dd.getMonth()+1)).slice(-2)}`;
+            // 포지션에 있는데 이번달에 없으면 판매, 포지션에 없는데 이번달에 있으면 매수
+            for( item in trade_port[monthStr] ){
+                var tKey = trade_port[monthStr][item].key;
+                if(position[tKey]){
+                    position[tKey].todo = "HOLD";
+                }else{
+                    position[tKey] = {
+                        todo : "BUY"
+                    };
                 }
             }
-            delayDate = parseInt($('#delayDate', '#multiple').val());
-            i++;
             
+            delayDate = parseInt($('#delayDate', '#multiple').val());
         }
         
         // BUY, SELL처리
@@ -787,21 +811,27 @@ function multipleMomentum(){
             delayDate = undefined;
             var totalPLM = 0;
             
-            for( k in position ){
-                if( position[k].todo == "BUY" ){
-                    position[k].todo = "HOLD";
-                    position[k].value = dataset[k][keyIndex[k]].Data;
-                    position[k].volume = (balance * (100 - cash_rate) / portf / 100) / position[k].value;
-                }
-            }
+            
             for( k in position ){
                 if( position[k].todo == "SELL" ){
                     balance += (dataset[k][keyIndex[k]].Data - position[k].value) * position[k].volume - (dataset[k][keyIndex[k]].Data * position[k].volume * fee / 100);
                     totalPLM += (dataset[k][keyIndex[k]].Data - position[k].value) * position[k].volume - (dataset[k][keyIndex[k]].Data * position[k].volume * fee / 100);
                     
+                    console.log(`SELL ${k} value: ${position[k].value} 손익: ${(dataset[k][keyIndex[k]].Data - position[k].value) / position[k].value * 100 - 1}`);
+                    
                     delete position[k];
                 }
             }
+            
+            for( k in position ){
+                if( position[k].todo == "BUY" ){
+                    position[k].todo = "HOLD";
+                    position[k].value = dataset[k][keyIndex[k]].Data;
+                    position[k].volume = (balance * (100 - cash_rate) / portf / 100) / position[k].value;
+                    console.log(`BUY ${k} value: ${position[k].value}`);
+                }
+            }
+            console.log('------------------------------');
         }
         
         var portpolioEvaluate = 0;
@@ -813,12 +843,12 @@ function multipleMomentum(){
         
         if( dd.getDate() == 1 ){
             var percen = portpolioEvaluate / balance * 100;
-            var $rw = $('#history tr:nth-child('+(i+1)+')', '#multiple');
-            // $rw.append('<td style="color:' + (percen >= 0?'red':'blue') + '">' + (percen+"").substring(0, 4) + '</td>');
-            // $rw.append('<td style="color:' + (totalPLM >= 0?'red':'blue') + '">' + (totalPLM+"").substring(0, 4) + '</td>');
-            $rw.append('<td>' + (balance + portpolioEvaluate + "").substring(0,7) + '</td>')
-            var ppp = (balance + portpolioEvaluate) - parseFloat($('#history tr:nth-child(' + (i) + ')', '#multiple').val()) / (balance + portpolioEvaluate);
-            $rw.append('<td>' + (ppp + "").substring(0,7) + '</td>');
+            var $rw = $(`#history tr:contains(${monthStr})`, '#multiple');
+            if( $rw.length ){
+                $rw.append('<td>' + (balance + portpolioEvaluate + "").substring(0,7) + '</td>')
+                var ppp = (balance + portpolioEvaluate) - parseFloat($rw.prev().find('td').last().prev().text()) / (balance + portpolioEvaluate);
+                $rw.append('<td>' + (ppp + "").substring(0,7) + '</td>');
+            }
         }
         
         balanceArray.push({x: new Date(dd), y: balance + portpolioEvaluate});
@@ -829,6 +859,10 @@ function multipleMomentum(){
                 keyIndex[key]++;
             }
         }
+    }
+    
+    for( k in position ){
+        console.log(`HOLD ${k} 손익 : ${(dataset[k][dataset[k].length - 1].Data - position[k].value) / position[k].value * 100 - 1}`);
     }
     
     var randomColor = 'rgb(' + parseInt(Math.random() * 256) + ', ' + 
