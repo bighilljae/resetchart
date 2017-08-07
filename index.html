@@ -21,19 +21,22 @@
     <script src="raw/js/singapore_simple.js"></script>
     <script src="raw/js/taiwan_simple.js"></script>
     
-    <script src="raw/js/dongyang_simple.js"></script>
+    <!--<script src="raw/js/dongyang_simple.js"></script>
     <script src="raw/js/high_yield_simple.js"></script>
     <script src="raw/js/gold_simple.js"></script>
-    <script src="raw/js/shinyoung_simple.js"></script>
+    <script src="raw/js/shinyoung_simple.js"></script>-->
     
     <script src="lib/moment.js"></script>
     <script src="lib/chart.js"></script>
     <script src="lib/jquery-3.2.1.js"></script>
     <script src="js/index.js"></script>
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <body>
-        <div id="mySlidenav" class="sidenav">
+        <div id="mySlidenav" class="sidenav navbar navbar-inverse">
           <a href="#">A형</a>
           <a href="#">싱글 에셋</a>
           <a href="#">멀티 에셋</a>
@@ -42,20 +45,20 @@
 
         <!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
         <div id="single" class="main">
-            <table>
+            <table class="table table-condensed form-group">
                 <tr>
                     <td>KOSPI200   <input id="ks200" type="radio" name="data" checked="checked"></td>
                     <td>날짜<input type="date" name="start">-<input type="date" name="end"></td>
-                    <td>거래비용<input id="fee" type="text" value="0">%</td>
+                    <td class="input-group"><span class="input-group-addon" id="basic-addon1">거래비용</span><input class="form-control" aria-describedby="basic-addon1" style="width: 45px" id="fee" type="text" value="0"></td>
                 </tr>
                 <tr>
                     <td>S&amp;P500 <input id="snp500" type="radio" name="data"></td>
-                    <td>펀드 편입 지연일수<input type="text" id="delayDate" value="0" >일</td>
+                    <td class="input-group"><span class="input-group-addon" id="basic-addon2">펀드 편입 지연일수</span><input class="form-control" type="text" id="delayDate" value="0" aria-describedby="basic-addon2" ></td>
                     <td class="momentumfunc" style="display:none"><input type="radio" name="avgType" id="simpleAvg" checked="checked">단순평균<input type="radio" name="avgType" id="weightAvg">가중평균 </td>
                 </tr>
                 <tr>
                     <td>HangSeng Index <input id="hsi" type="radio" name="data"></td>
-                    <td><input type="button" onclick="loadChart()" value="챠트생성"> <input type="button" onclick="addData()" value="수익률보기"></td>
+                    <td><input class="btn btn-lg btn-primary" type="button" onclick="loadChart()" value="챠트생성"> <input class="btn btn-lg btn-primary" type="button" onclick="addData()" value="수익률보기"></td>
                     <td id="atype" style="display:block">전월 수익률 <input type="text" name="lower" value="-1">이하 청산<input type="text" name="upper" value="2">이상 매수</td>
                     <td class="momentumfunc" id="momentumTd" style="display:none">모멘텀 기간 <input type="text" name="momentum_left" value="6">~<input type="text" name="momentum_right" value="0"></td>
                 </tr>
@@ -65,19 +68,20 @@
             <canvas id="drawdown" width="650pt" height="120pt"></canvas>
         </div>
         <div id="multiple" class="main" style="display:none">
-            <table>
+            <table class="table table-condensed">
                 <tr>
                     <td>날짜<input type="date" name="start">-<input type="date" name="end"></td>
-                    <td>거래비용<input id="fee" type="text" value="0">%</td>
-                    <td>최대 포트폴리오 갯수<input id="portf" type="text" value="5">개</td>
-                    <td>최소 현금 보유 비율<input id="cash_per" type="text" value="0">%</td>
-                    <td>모멘텀<input id="momentum_var" type="text" value="3">M</td>
-                    <td>편입 지연 일수<input type="text" id="delayDate" value="0"></td>
-                    <td><input type="button" name="show_chart" onclick="multipleMomentum()" value="챠트생성"></td>
+                    <td class="input-group"><span id="basic-addon3" class="input-group-addon">거래비용</span><input class="form-control" aria-describedby="basic-addon3" id="fee" type="text" value="0"></td>
+                    <td class="input-group"><span id="basic-addon4" class="input-group-addon">최대 포트폴리오 갯수</span><input class="form-control" aria-describedby="basic-addon4" id="portf" type="text" value="5"></td>
+                    <td class="input-group"><span id="basic-addon5" class="input-group-addon">최소 현금 보유 비율</span><input class="form-control" aria-describedby="basic-addon5" id="cash_per" type="text" value="0"></td>
+                    <td class="input-group"><span id="basic-addon6" class="input-group-addon">모멘텀</span><input class="form-control" aria-describedby="basic-addon6" id="momentum_var" type="text" value="3"></td>
+
+                    <td class="input-group"><span id="basic-addon7" class="input-group-addon">편입 지연 일수</span><input class="form-control" aria-describedby="basic-addon7" type="text" id="delayDate" value="0"></td>
+                    <td><input class="btn btn-lg btn-primary" type="button" name="show_chart" onclick="multipleMomentum()" value="챠트생성"></td>
                 </tr>
             </table>
             <canvas id="mul_chart" width="920pt" height="350pt"></canvas>
-            <table id="history">
+            <table id="history" class="table table-striped">
             </table>
         </div>
     </body>

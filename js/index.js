@@ -585,6 +585,12 @@ function multipleMomentum(){
     window.momentum_dist = parseInt($('#momentum_var', '#multiple').val());
     
     // 13개
+    
+    var fee = parseFloat($('#fee', '#multiple').val());
+    var portf = parseInt($('#portf', '#mulitple').val());
+    var min_cash_rate = parseFloat($('#cash_per', '#multiple').val());
+    var momentum_dist = parseInt($('#momentum_var', '#multiple').val());
+    
     if( !multiple_chart ){
         window.dataset = {"NASDAQ":nasdaq_simple,
                        "JAPAN": japan_simple,
@@ -597,10 +603,10 @@ function multipleMomentum(){
                        "HANGSENG Index": hangseng_simple,
                        "BRAZIL": brazil_simple,
                        "KOREA": korea_simple,
-                       "동양 고배당": dongyang_simple,
-                       "신영 밸류 고배당": shinyoung_simple,
-                       "Gold": gold_simple,
-                       "high yield": high_yield_simple,
+                       //"동양 고배당": dongyang_simple,
+                       //"신영 밸류 고배당": shinyoung_simple,
+                       //"Gold": gold_simple,
+                       //"high yield": high_yield_simple,
                        "삼성중소형 foucs": samsung_focus_simple};
 
         var ctx = document.getElementById('mul_chart').getContext('2d');
@@ -669,8 +675,9 @@ function multipleMomentum(){
     
     window.monthly = {};
     $('#history', '#multiple').empty();
+    $('#history', '#multiple').append('<thead></thead>');
     $tr = $('<tr></tr>');
-    $('#history', '#multiple').append($tr);
+    $('#history thead', '#multiple').append($tr);
     $tr.append('<td>날짜</td>');
     for( key in dataset ){
         $tr.append(`<td>${key}</td>`);
@@ -715,7 +722,8 @@ function multipleMomentum(){
         }
     });
     
-    var $history_table = $('#history', '#multiple');
+    $('#history', '#multiple').append('<tbody></tbody>');
+    var $history_table = $('#history tbody', '#multiple');
     var i = 0;
     var trade_port = [];
     for( month in monthly ){
