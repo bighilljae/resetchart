@@ -598,19 +598,20 @@ function multipleMomentum(){
     window.dataset = {"NASDAQ":nasdaq_simple,
                    "JAPAN": japan_simple,
                    //"SINGAPORE": singapore_simple,
-                   "MSCI Russia Index": russia_simple,
+                   "Russia": russia_simple,
                    //"TAIWAN": taiwan_simple,
                    //"HONGKONG": hongkong_simple,
                    //"AUSTRAILLIA": austraillia_simple,
-                   "MSCI India Index": india_simple,
-                   "HANGSENG Index": hangseng_simple,
+                   "India": india_simple,
+                   "HANGSENG": hangseng_simple,
                    "BRAZIL": brazil_simple,
                    "KOREA": korea_simple,
                    "동양 고배당": dongyang_simple,
                    "신영 밸류 고배당": shinyoung_simple,
                    "Gold": gold_simple,
                    "high yield": high_yield_simple,
-                   "삼성중소형 foucs": samsung_focus_simple};
+                   "삼성중소형 foucs": samsung_focus_simple
+                     };
 
     var ctx = document.getElementById('mul_chart').getContext('2d');
 
@@ -654,8 +655,21 @@ function multipleMomentum(){
         }
     };
 
+    var keyIndex = {};
     Object.keys(dataset).forEach(function(key){
-        var firstValue = dataset[key][0].Data;
+        keyIndex[key] = undefined;
+        if( new Date(dataset[key][0].Date).getTime() < dateStart.getTime() ){
+            for( i = 0 ; i < dataset[key].length ; i ++ ){
+                if( dateStartStr == dataset[key][i].Date ){
+                    keyIndex[key] = i;
+                    break;
+                }                    
+            }
+        }
+    }, this);
+    
+    Object.keys(dataset).forEach(function(key){
+        var firstValue = dataset[key][keyIndex[key]?keyIndex[key]:0].Data;
         var dataArray = [];
         dataset[key].filter(function(elem){
             var elemDate = new Date(elem.Date);
@@ -674,7 +688,7 @@ function multipleMomentum(){
             backgroundColor: color(randomColor).alpha(1).rgbString(),
             borderColor: randomColor
         })
-    });
+    }, this);
 
     if( multiple_chart )
         multiple_chart.destroy();
@@ -754,23 +768,11 @@ function multipleMomentum(){
         
         trade_port[month] = trade_port[month].sort(function(l, r){
             return l.value < r.value;
-        }).slice(0, 5);
+        }).slice(0, portf);
         if( momentum_index !== undefined ) momentum_index++;
     }
     
     var balance = 100;
-    var keyIndex = {};
-    Object.keys(dataset).forEach(function(key){
-        keyIndex[key] = undefined;
-        if( new Date(dataset[key][0].Date).getTime() < dateStart.getTime() ){
-            for( i = 0 ; i < dataset[key].length ; i ++ ){
-                if( dateStartStr == dataset[key][i].Date ){
-                    keyIndex[key] = i;
-                    break;
-                }                    
-            }
-        }
-    }, this);
     var balanceArray = [];
     var position = {};
     var delayDate = undefined;
@@ -817,7 +819,7 @@ function multipleMomentum(){
                     balance += (dataset[k][keyIndex[k]].Data - position[k].value) * position[k].volume - (dataset[k][keyIndex[k]].Data * position[k].volume * fee / 100);
                     totalPLM += (dataset[k][keyIndex[k]].Data - position[k].value) * position[k].volume - (dataset[k][keyIndex[k]].Data * position[k].volume * fee / 100);
                     
-                    console.log(`SELL ${k} value: ${position[k].value} 손익: ${(dataset[k][keyIndex[k]].Data - position[k].value) / position[k].value * 100 - 1}`);
+                    // console.log(`SELL ${k} value: ${position[k].value} 손익: ${(dataset[k][keyIndex[k]].Data - position[k].value) / position[k].value * 100 - 1}`);
                     
                     delete position[k];
                 }
@@ -828,16 +830,20 @@ function multipleMomentum(){
                     position[k].todo = "HOLD";
                     position[k].value = dataset[k][keyIndex[k]].Data;
                     position[k].volume = (balance * (100 - cash_rate) / portf / 100) / position[k].value;
-                    console.log(`BUY ${k} value: ${position[k].value}`);
+                    // console.log(`BUY ${k} value: ${position[k].value}`);
                 }
             }
-            console.log('------------------------------');
+            // console.log('------------------------------');
         }
         
+        var portpolioSum = 0;
+        var portpolioString = "";
         var portpolioEvaluate = 0;
         for( k in position ){
             if( position[k].todo != "BUY" ){
                 portpolioEvaluate += (dataset[k][keyIndex[k]].Data - position[k].value) * position[k].volume;
+                portpolioSum += parseInt(dataset[k][keyIndex[k]].Data * position[k].volume);
+                portpolioString += `${k} ${parseInt(dataset[k][keyIndex[k]].Data * position[k].volume)} `;
             }
         }
         
@@ -851,7 +857,9 @@ function multipleMomentum(){
             }
         }
         
-        balanceArray.push({x: new Date(dd), y: balance + portpolioEvaluate});
+        console.log(`${dd.getFullYear()}-${dd.getMonth() + 1}-${dd.getDate()} / eval : ${parseInt(balance + portpolioEvaluate)},${parseInt(portpolioSum)} / ${portpolioString}`);
+        
+        balanceArray.push({x: new Date(dd), y: (balance + portpolioEvaluate) - 100});
             
         if( delayDate !== undefined ) delayDate--;
         for( key in keyIndex ){
