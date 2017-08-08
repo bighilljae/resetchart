@@ -589,29 +589,28 @@ function multipleMomentum(){
     var dateEndStr = $("input[name*='end']", '#multiple').val();
     var dateEnd = new Date(dateEndStr);
     
+    window.report = [];
     window.fee = parseFloat($('#fee', '#multiple').val());
     window.portf = parseInt($('#portf', '#multiple').val());
     window.cash_rate = parseFloat($('#cash_per', '#multiple').val());
     window.momentum_dist = parseInt($('#momentum_var', '#multiple').val());
-    
-    // 13개
     window.dataset = {"NASDAQ":nasdaq_simple,
-                   "JAPAN": japan_simple,
-                   //"SINGAPORE": singapore_simple,
-                   "Russia": russia_simple,
-                   //"TAIWAN": taiwan_simple,
-                   //"HONGKONG": hongkong_simple,
-                   //"AUSTRAILLIA": austraillia_simple,
-                   "India": india_simple,
-                   "HANGSENG": hangseng_simple,
-                   "BRAZIL": brazil_simple,
-                   "KOREA": korea_simple,
-                   "동양 고배당": dongyang_simple,
-                   "신영 밸류 고배당": shinyoung_simple,
-                   "Gold": gold_simple,
-                   "high yield": high_yield_simple,
-                   "삼성중소형 foucs": samsung_focus_simple
-                     };
+                "JAPAN": japan_simple,
+                //"SINGAPORE": singapore_simple,
+                "Russia": russia_simple,
+                //"TAIWAN": taiwan_simple,
+                //"HONGKONG": hongkong_simple,
+                //"AUSTRAILLIA": austraillia_simple,
+                "India": india_simple,
+                "HANGSENG": hangseng_simple,
+                "BRAZIL": brazil_simple,
+                "KOREA": korea_simple,
+                "동양 고배당": dongyang_simple,
+                "신영 밸류 고배당": shinyoung_simple,
+                "Gold": gold_simple,
+                "high yield": high_yield_simple,
+                "삼성중소형 foucs": samsung_focus_simple
+                  };
 
     var ctx = document.getElementById('mul_chart').getContext('2d');
 
@@ -686,7 +685,8 @@ function multipleMomentum(){
             yAxisID: "data",
             data: dataArray,
             backgroundColor: color(randomColor).alpha(1).rgbString(),
-            borderColor: randomColor
+            borderColor: randomColor,
+            hidden: true
         })
     }, this);
 
@@ -697,8 +697,9 @@ function multipleMomentum(){
     
     window.monthly = {};
     $('#history', '#multiple').empty();
+    $('#history', '#multiple').append('<thead></thead>');
     $tr = $('<tr></tr>');
-    $('#history', '#multiple').append($tr);
+    $('#history thead', '#multiple').append($tr);
     $tr.append('<td>날짜</td>');
     for( key in dataset ){
         $tr.append(`<td>${key}</td>`);
@@ -743,20 +744,25 @@ function multipleMomentum(){
         }
     });
     
-    var $history_table = $('#history', '#multiple');
+    $('#history', '#multiple').append('<tbody></tbody>');
+    var $history_table = $('#history tbody', '#multiple');
     var trade_port = {};
     var momentum_index = 0;
     for( month in monthly ){
+        var inDate = dateStart <= new Date(month).getTime() &&
+                    new Date(month).getTime() <= dateEnd;
         trade_port[month] = [];
         if( month == momentum_history[0].Date ) momentum_index = 0;
-        $row = $('<tr></tr>');
-        $history_table.append($row);
-        $row.append('<td>' + month + '</td>');
+        if (inDate ) {
+            $row = $('<tr></tr>');
+            $history_table.prepend($row);
+            $row.append('<td>' + month + '</td>');
+        }
         for( key in dataset ){
-            if( momentum_index === undefined || momentum_history[momentum_index][key] == undefined ){
+            if( momentum_index === undefined || momentum_history[momentum_index][key] == undefined && inDate ){
                 $row.append('<td>-</td>');
             }else{
-                $row.append('<td style="color:' + (momentum_history[momentum_index][key]<0?'blue':'red') + '">' + (100*momentum_history[momentum_index][key]+"").substring(0, 5) + '</td>');
+                inDate && $row.append('<td style="color:' + (momentum_history[momentum_index][key]<0?'blue':'red') + '">' + (100*momentum_history[momentum_index][key]+"").substring(0, 5) + '</td>');
                 if( momentum_history[momentum_index][key] > 0 ){
                     trade_port[month].push({
                         key: key,
@@ -788,6 +794,13 @@ function multipleMomentum(){
         }
         if( endRun ) break;
         
+        var todayReport = {
+            date: new Date(dd),
+            pf: {
+                balance: undefined,
+                list: []
+            }, trade: []}
+        
         if( dd.getDate() == 1 ){
             for( k in position ){
                 position[k].todo = "SELL";
@@ -804,9 +817,19 @@ function multipleMomentum(){
                     };
                 }
             }
-            
             delayDate = parseInt($('#delayDate', '#multiple').val());
         }
+    
+        for( k in position ){
+            if( position[k].todo == "HOLD" ) continue;
+            
+            todayReport.trade.push({
+                pos: position[k].todo,
+                key: k,
+                price: dataset[k][keyIndex[k]].Data,
+            });
+        }
+        
         
         // BUY, SELL처리
         if( delayDate === 0 ){
@@ -819,6 +842,14 @@ function multipleMomentum(){
                     balance += (dataset[k][keyIndex[k]].Data - position[k].value) * position[k].volume - (dataset[k][keyIndex[k]].Data * position[k].volume * fee / 100);
                     totalPLM += (dataset[k][keyIndex[k]].Data - position[k].value) * position[k].volume - (dataset[k][keyIndex[k]].Data * position[k].volume * fee / 100);
                     
+                    todayReport.trade.push({
+                        pos: "SELL",
+                        key: k,
+                        value: position[k].value,
+                        volume: position[k].volume,
+                        exit: dataset[k][keyIndex[k]].Data * (100 - fee) / 100
+                    });
+                    
                     // console.log(`SELL ${k} value: ${position[k].value} 손익: ${(dataset[k][keyIndex[k]].Data - position[k].value) / position[k].value * 100 - 1}`);
                     
                     delete position[k];
@@ -830,6 +861,13 @@ function multipleMomentum(){
                     position[k].todo = "HOLD";
                     position[k].value = dataset[k][keyIndex[k]].Data;
                     position[k].volume = (balance * (100 - cash_rate) / portf / 100) / position[k].value;
+                    
+                    todayReport.trade.push({
+                        pos: "BUY",
+                        key: k,
+                        value: position[k].value,
+                        volume: position[k].volume
+                    });
                     // console.log(`BUY ${k} value: ${position[k].value}`);
                 }
             }
@@ -844,6 +882,13 @@ function multipleMomentum(){
                 portpolioEvaluate += (dataset[k][keyIndex[k]].Data - position[k].value) * position[k].volume;
                 portpolioSum += parseInt(dataset[k][keyIndex[k]].Data * position[k].volume);
                 portpolioString += `${k} ${parseInt(dataset[k][keyIndex[k]].Data * position[k].volume)} `;
+                
+                todayReport.pf.list.push({
+                    key: k,
+                    value: position[k].value,
+                    price: dataset[k][keyIndex[k]].Data,
+                    volume: position[k].volume
+                });
             }
         }
         
@@ -852,7 +897,7 @@ function multipleMomentum(){
             var $rw = $(`#history tr:contains(${monthStr})`, '#multiple');
             if( $rw.length ){
                 $rw.append('<td>' + (balance + portpolioEvaluate + "").substring(0,7) + '</td>')
-                var ppp = (balance + portpolioEvaluate) - parseFloat($rw.prev().find('td').last().prev().text()) / (balance + portpolioEvaluate);
+                var ppp = (((balance + portpolioEvaluate) - parseFloat($rw.next().find('td').last().prev().text())) / (balance + portpolioEvaluate) * 100 + "").substring(0, 5) + "%";
                 $rw.append('<td>' + (ppp + "").substring(0,7) + '</td>');
             }
         }
@@ -860,6 +905,8 @@ function multipleMomentum(){
         console.log(`${dd.getFullYear()}-${dd.getMonth() + 1}-${dd.getDate()} / eval : ${parseInt(balance + portpolioEvaluate)},${parseInt(portpolioSum)} / ${portpolioString}`);
         
         balanceArray.push({x: new Date(dd), y: (balance + portpolioEvaluate) - 100});
+        todayReport.pf.balance = (balance + portpolioEvaluate) - 100;
+        report.push(todayReport);
             
         if( delayDate !== undefined ) delayDate--;
         for( key in keyIndex ){
@@ -888,6 +935,113 @@ function multipleMomentum(){
     });
     balanceColor = "black";
     multiple_chart.update();
+}
+
+function showReport(){
+    if( !window.report ) return;
+    var res = {tradelist: [], monthly: []};
+    var lastDD;
+    
+    var balance = report[0].pf.balance;
+    var highBalance = balance, mdd = 0;
+    var profitByKey = {};
+    for( k in dataset ){
+        profitByKey[k] = 0;
+    }
+    report.forEach(function(day, index){
+        if( day.date.getDate() == 1 && index ){
+            res.monthly.push({
+                pl: day.pf.balance - balance
+            });
+            
+            balance = day.pf.balance;
+        }
+        
+        // MDD 계산
+        if( highBalance < day.pf.balance ) 
+            highBalance = day.pf.balance;
+        if( mdd > (day.pf.balance - highBalance) / (highBalance+100) * 100 )
+            mdd = (day.pf.balance - highBalance) / (highBalance+100) * 100;
+        
+        day.trade.length && day.trade.filter(function(elem){
+            return elem.pos == "SELL";
+        }).forEach(function(elem){
+            // 거래당 기록
+            if(elem.exit > elem.value) 
+                profitByKey[elem.key] += (elem.exit - elem.value) * elem.volume;
+        }, this);
+    });
+    report[report.length - 1].pf.list.filter(function(elem){
+        return elem.price > elem.value;
+    }).forEach(function(elem){
+        profitByKey[elem.key] += (elem.price - elem.value) * elem.volume;
+    }, this);
+    if( report[report.length - 1].date.getDate() != 1 ){    // last month
+        res.monthly.push({
+            pl: report[report.length - 1].pf.balance - balance
+        });
+    }
+        
+    var pie_config = {
+        type: 'pie',
+        data: {
+            datasets: [{
+                data: [],
+                backgroundColor: [],
+            }],
+            labels: []
+        },
+        options: {
+            tooltips: {
+                callbacks: {
+                    label: function(tooltipItem, data){
+                        return `${data.labels[tooltipItem.index]} : ${data.datasets[0].data[tooltipItem.index] + "%"}`;
+                    }
+                }
+            },
+            legend: {
+                display: false
+            }
+        }
+    };
+    var totalProfit = 0;
+    for( key in profitByKey ){
+        totalProfit += profitByKey[key];
+    }
+    for( key in profitByKey ){
+        pie_config.data.datasets[0].data.push(Math.ceil((profitByKey[key])/totalProfit*100));
+        pie_config.data.datasets[0].backgroundColor.push( 'rgb(' + parseInt(Math.random() * 256) + ', ' + 
+                                parseInt(Math.random() * 256) + ', ' + 
+                                parseInt(Math.random() * 256) + ')');
+        pie_config.data.labels.push(key);
+    }
+    
+    var dtx = document.getElementById("report_pie_chart").getContext("2d");
+    if( window.report_pie_chart_obj ) window.report_pie_chart_obj.destroy();
+    window.report_pie_chart_obj = new Chart(dtx, pie_config);
+        
+        
+    var pp = 0;
+    var tg = 0, tl = 0;
+    res.monthly.forEach(function(month){
+        if( month.pl > 0 ){
+            pp++;
+            tg += month.pl;
+        } else{
+            tl -= month.pl;
+        }
+    }, this);
+    
+    // 총 수익률
+    $('#reportTable tr:nth-child(2) td').eq(0).text((report[report.length - 1].pf.balance+"").substring(0,8) + "%");
+    // CAGR
+    $('#reportTable tr:nth-child(2) td').eq(1).text((Math.pow((report[report.length - 1].pf.balance+100) / 100, 12 / res.monthly.length)*100-100+"").substring(0, 6) + "%");
+    // MDD
+    $('#reportTable tr:nth-child(2) td').eq(2).text((mdd+"").substring(0, 5) + "%");
+    // Positive Period
+    $('#reportTable tr:nth-child(2) td').eq(3).text(((pp / res.monthly.length) * 100 + "").substring(0, 5) + "%");
+    // total gain / total loss
+    $('#reportTable tr:nth-child(2) td').eq(4).text((tg / tl + "").substring(0, 6));
 }
 
 
