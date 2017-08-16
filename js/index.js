@@ -69,6 +69,65 @@ $(function(){
         $("input[name*='start']", '#multiple').val("2000-01-01");
         var q = new Date();
         $("input[name*='end']", '#multiple').val(`${q.getFullYear()}-${("0"+(q.getMonth()+1)).slice(-2)}-${("0"+q.getDate()).slice(-2)}`);
+        
+        window.dataset = {"NASDAQ":nasdaq_simple,
+                "JAPAN": japan_simple,
+                "SINGAPORE": singapore_simple,
+                "Russia": russia_simple,
+                "TAIWAN": taiwan_simple,
+                "HONGKONG": hongkong_simple,
+                "AUSTRAILLIA": austraillia_simple,
+                "India": india_simple,
+                "HANGSENG": hangseng_simple,
+                "BRAZIL": brazil_simple,
+                "KOREA": korea_simple,
+                "Gold": gold_simple,
+                "high yield": high_yield_simple,
+          };
+    });
+    $("#mySlidenav a:nth-child(4)").click(function(){
+        $("#single").css('display', 'none');
+        $('#multiple').css('display', 'block');
+        $("#atype").css('display', 'none');
+        $('.momentumfunc').css('display', 'block');
+        balanceColor = undefined;
+        
+        $("input[name*='start']", '#multiple').val("2000-01-01");
+        var q = new Date();
+        $("input[name*='end']", '#multiple').val(`${q.getFullYear()}-${("0"+(q.getMonth()+1)).slice(-2)}-${("0"+q.getDate()).slice(-2)}`);
+        
+        window.dataset = {"동양 고배당": dongyang_simple,
+                         "신영 밸류 고배당": shinyoung_simple,
+                         "삼성중소형 focus": samsung_focus_simple,
+                         "KODEX 200": kodex_200,
+                         "KODEX 레버리지": kodex_leverage,
+                         "KODEX 코스닥 150 레버리지": kodex_kosdaq_150_leverage,
+                         "KODEX 코스닥 150": kodex_kosdaq_150};
+    });
+    $("#mySlidenav a:nth-child(5)").click(function(){
+        $("#single").css('display', 'none');
+        $('#multiple').css('display', 'block');
+        $("#atype").css('display', 'none');
+        $('.momentumfunc').css('display', 'block');
+        balanceColor = undefined;
+        
+        $("input[name*='start']", '#multiple').val("2000-01-01");
+        var q = new Date();
+        $("input[name*='end']", '#multiple').val(`${q.getFullYear()}-${("0"+(q.getMonth()+1)).slice(-2)}-${("0"+q.getDate()).slice(-2)}`);
+        
+        window.dataset = {
+            "KODEX 반도체": kodex_semicon,
+            "KODEX 은행": kodex_bank,
+            "KODEX 자동차": kodex_auto,
+            "KODEX 증권": kodex_security,
+            "KODEX 에너지화학": kodex_energy,
+            "KODEX 철강": kodex_steel,
+            "TIGER 헬스케어": tiger_healthcare,
+            "KODEX JAPAN": kodex_japan,
+            "KODEX CHINA": kodex_china,
+            "TIGER 미국": tiger_usa,
+            "KODEX GOLD": kodex_gold
+        };
     });
 });
 
@@ -594,23 +653,6 @@ function multipleMomentum(){
     window.portf = parseInt($('#portf', '#multiple').val());
     window.cash_rate = parseFloat($('#cash_per', '#multiple').val());
     window.momentum_dist = parseInt($('#momentum_var', '#multiple').val());
-    window.dataset = {"NASDAQ":nasdaq_simple,
-                "JAPAN": japan_simple,
-                //"SINGAPORE": singapore_simple,
-                "Russia": russia_simple,
-                //"TAIWAN": taiwan_simple,
-                //"HONGKONG": hongkong_simple,
-                //"AUSTRAILLIA": austraillia_simple,
-                "India": india_simple,
-                "HANGSENG": hangseng_simple,
-                "BRAZIL": brazil_simple,
-                "KOREA": korea_simple,
-                "동양 고배당": dongyang_simple,
-                "신영 밸류 고배당": shinyoung_simple,
-                "Gold": gold_simple,
-                "high yield": high_yield_simple,
-                "삼성중소형 foucs": samsung_focus_simple
-                  };
 
     var ctx = document.getElementById('mul_chart').getContext('2d');
 
@@ -700,7 +742,7 @@ function multipleMomentum(){
     $('#history', '#multiple').append('<thead></thead>');
     $tr = $('<tr></tr>');
     $('#history thead', '#multiple').append($tr);
-    $tr.append('<td>날짜</td>');
+    $tr.append('<td style="width: 70px;">날짜</td>');
     for( key in dataset ){
         $tr.append(`<td>${key}</td>`);
     }
@@ -737,7 +779,7 @@ function multipleMomentum(){
         !momentum_history[index] ? momentum_history[index] = {Date: month} : null;
         for( key in monthly[month] ){
             if( index < momentum_dist || monthly[offset[index - momentum_dist]][key] == undefined ){
-                momentum_history[index][key] = undefined;
+//                momentum_history[index][key] = undefined;
             } else{
                 momentum_history[index][key] = (monthly[month][key].Close - monthly[offset[index - momentum_dist]][key].Close) / monthly[month][key].Close;
             }
@@ -747,8 +789,9 @@ function multipleMomentum(){
     $('#history', '#multiple').append('<tbody></tbody>');
     var $history_table = $('#history tbody', '#multiple');
     var trade_port = {};
-    var momentum_index = 0;
-    for( month in monthly ){
+    var momentum_index = undefined;
+	var $row = null;
+    Object.keys(monthly).sort().forEach(function(month){
         var inDate = dateStart <= new Date(month).getTime() &&
                     new Date(month).getTime() <= dateEnd;
         trade_port[month] = [];
@@ -760,7 +803,7 @@ function multipleMomentum(){
         }
         for( key in dataset ){
             if( momentum_index === undefined || momentum_history[momentum_index][key] == undefined && inDate ){
-                $row.append('<td>-</td>');
+                $row && $row.append('<td>-</td>');
             }else{
                 inDate && $row.append('<td style="color:' + (momentum_history[momentum_index][key]<0?'blue':'red') + '">' + (100*momentum_history[momentum_index][key]+"").substring(0, 5) + '</td>');
                 if( momentum_history[momentum_index][key] > 0 ){
@@ -776,7 +819,7 @@ function multipleMomentum(){
             return l.value < r.value;
         }).slice(0, portf);
         if( momentum_index !== undefined ) momentum_index++;
-    }
+    }, this);
     
     var balance = 100;
     var balanceArray = [];
@@ -858,9 +901,9 @@ function multipleMomentum(){
             
             for( k in position ){
                 if( position[k].todo == "BUY" ){
-                    position[k].todo = "HOLD";
                     position[k].value = dataset[k][keyIndex[k]].Data;
                     position[k].volume = (balance * (100 - cash_rate) / portf / 100) / position[k].value;
+                    position[k].todo = "HOLD";
                     
                     todayReport.trade.push({
                         pos: "BUY",
@@ -897,8 +940,8 @@ function multipleMomentum(){
             var $rw = $(`#history tr:contains(${monthStr})`, '#multiple');
             if( $rw.length ){
                 $rw.append('<td>' + (balance + portpolioEvaluate + "").substring(0,7) + '</td>')
-                var ppp = (((balance + portpolioEvaluate) - parseFloat($rw.next().find('td').last().prev().text())) / (balance + portpolioEvaluate) * 100 + "").substring(0, 5) + "%";
-                $rw.append('<td>' + (ppp + "").substring(0,7) + '</td>');
+                var ppp = (((balance + portpolioEvaluate) - parseFloat($rw.next().find('td').last().text())) / (balance + portpolioEvaluate) * 100 + "").substring(0, 5) + "%";
+                $rw.next().append('<td>' + (ppp + "").substring(0,7) + '</td>');
             }
         }
         
