@@ -12,8 +12,12 @@ var parser = parse({delimiter: ','}, function(err, data){
     date = new Date(data[1][0]);
     for( let i = 1 ; i < data.length ; i ++ ){
         while( new Date(data[i][0]).getTime() !== date.getTime() ){
-            res.push(res[res.length-1]);
-            res[res.length-1].Date = `${date.getFullYear()}-${("0"+(date.getMonth()+1)).slice(-2)}-${("0"+date.getDate()).slice(-2)}`;
+			var cpy = {};
+			for( k in res[res.length - 1] ){
+				cpy[k] = res[res.length - 1][k];
+			}
+			cpy.Date = `${date.getFullYear()}-${("0"+(date.getMonth()+1)).slice(-2)}-${("0"+date.getDate()).slice(-2)}`;
+            res.push(cpy);
             date.setDate(date.getDate() + 1);
             // process.stdout.write('* ' + res[res.length-1].Date + '\n');
         }
