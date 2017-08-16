@@ -1024,7 +1024,7 @@ function showReport(){
             pl: report[report.length - 1].pf.balance - balance
         });
     }
-        
+    /*
     var pie_config = {
         type: 'pie',
         data: {
@@ -1050,18 +1050,7 @@ function showReport(){
     var totalProfit = 0;
     for( key in profitByKey ){
         totalProfit += profitByKey[key];
-    }
-    for( key in profitByKey ){
-        pie_config.data.datasets[0].data.push(Math.ceil((profitByKey[key])/totalProfit*100));
-        pie_config.data.datasets[0].backgroundColor.push( 'rgb(' + parseInt(Math.random() * 256) + ', ' + 
-                                parseInt(Math.random() * 256) + ', ' + 
-                                parseInt(Math.random() * 256) + ')');
-        pie_config.data.labels.push(key);
-    }
-    
-    var dtx = document.getElementById("report_pie_chart").getContext("2d");
-    if( window.report_pie_chart_obj ) window.report_pie_chart_obj.destroy();
-    window.report_pie_chart_obj = new Chart(dtx, pie_config);
+    }*/
         
         
     var pp = 0;
