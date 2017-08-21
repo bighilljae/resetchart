@@ -76,7 +76,7 @@ $(function(){
                 "Russia": russia_simple,
                 "TAIWAN": taiwan_simple,
                 "HONGKONG": hongkong_simple,
-                "AUSTRAILLIA": austraillia_simple,
+                "AUSTRAILIA": austrailia_simple,
                 "India": india_simple,
                 "HANGSENG": hangseng_simple,
                 "BRAZIL": brazil_simple,
